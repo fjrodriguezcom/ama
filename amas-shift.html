@@ -572,7 +572,7 @@ function House(){
 function Field(){
   const S={music:'field',result:null,failMsg:'',bonus:0};
   const WW=1152,GY=196,GOAL=20,MAXLOST=7;
-  const plats=[{x:100,y:160,w:64},{x:190,y:126,w:56},{x:290,y:96,w:48},{x:330,y:156,w:72},{x:440,y:124,w:56},{x:530,y:92,w:60},{x:640,y:156,w:64},{x:720,y:120,w:56},{x:800,y:86,w:52},{x:850,y:154,w:64},{x:940,y:122,w:60},{x:1040,y:90,w:56},{x:1070,y:158,w:60}];
+  const plats=[{x:100,y:160,w:64},{x:190,y:126,w:56},{x:290,y:96,w:48},{x:330,y:156,w:72},{x:440,y:124,w:56},{x:530,y:92,w:60},{x:640,y:156,w:64},{x:720,y:120,w:56},{x:790,y:86,w:54},{x:850,y:154,w:64},{x:940,y:122,w:60},{x:1040,y:90,w:56},{x:1070,y:158,w:60}];
   const mud=[{x:250,w:56},{x:700,w:48},{x:985,w:56}],pond=[{x:560,w:64}];
   const thorns=[{x:410,y:GY-9,w:28,h:9},{x:905,y:GY-9,w:24,h:9},{x:552,y:83,w:18,h:9},{x:760,y:GY-9,w:22,h:9}];
   const bees=[{cx:250,cy:120,ax:46,ay:14,s:1.1},{cx:500,cy:60,ax:30,ay:16,s:1.4},{cx:660,cy:128,ax:40,ay:10,s:1.2},{cx:880,cy:100,ax:50,ay:20,s:.9},{cx:1090,cy:124,ax:36,ay:16,s:1.3}];
@@ -591,10 +591,10 @@ function Field(){
     a.vx+=(mv*100*slow-a.vx)*Math.min(1,dt*(a.onG?12:6));if(mv)a.dir=mv>0?'right':'left';
     if(pressed.act||pressed.up)a.buf=.12;else a.buf-=dt;a.coy=a.onG?.09:a.coy-dt;
     if(a.buf>0&&a.coy>0&&got<GOAL){a.vy=-255*(inMud||inPond?.72:1);a.onG=false;a.coy=0;a.buf=0;SFX.jump()}
-    if(!(keys.act||keys.up)&&a.vy<-90)a.vy=-90;
+    if(!(keys.act||keys.up)&&a.vy<-130)a.vy=-130;
     a.vy=Math.min(a.vy+640*dt,400);a.x=clamp(a.x+a.vx*dt,0,WW-12);
     const pf=a.y+18;a.y+=a.vy*dt;const nfeet=a.y+18;a.onG=false;
-    if(a.vy>=0){if(nfeet>=GY){a.y=GY-18;a.vy=0;a.onG=true}else for(const p of plats){if(fx+4>p.x&&fx-4<p.x+p.w&&pf<=p.y+.5&&nfeet>=p.y){a.y=p.y-18;a.vy=0;a.onG=true;break}}}
+    if(a.vy>=0){if(nfeet>=GY){a.y=GY-18;a.vy=0;a.onG=true}else {const fx2=a.x+6;for(const p of plats){if(fx2+5>p.x&&fx2-5<p.x+p.w&&pf<=p.y+6&&nfeet>=p.y){a.y=p.y-18;a.vy=0;a.onG=true;break}}}}
     if(mv&&a.onG)a.anim+=dt*9*Math.max(.4,slow);
     const b=body();
     for(const t of thorns)if(overlap(b,t)){a.thornT=.9;if(a.thornCd<=0){a.thornCd=1.2;SFX.hurt();pop('¡ZARZAS!',fx-cam,a.y-6,'#ff9a70')}}
@@ -605,7 +605,7 @@ function Field(){
     if(fl.length<maxA&&got+fl.length<GOAL){spT-=dt;if(spT<=0){spT=rnd(.5,1.1);let free=SP.filter(p=>!fl.some(f=>f.p===p)&&Math.abs(p.x-fx)>60);if(!free.length)free=SP.filter(p=>!fl.some(f=>f.p===p));
       const p=pick(free);fl.push({p,x:p.x,y:p.y,t:0,life:Math.max(6.5,10.5-got*.18),c:ri(0,3)});SFX.beep()}}
     for(const f of fl){f.t+=dt;
-      if(overlap(b,{x:f.x-5,y:f.y-14,w:10,h:14})&&got<GOAL){f.dead=1;got++;addScore(100+Math.round((f.life-f.t)*10),f.x-cam,f.y-24);SFX.flower();
+      if(overlap(b,{x:f.x-7,y:f.y-16,w:14,h:17})&&got<GOAL){f.dead=1;got++;addScore(100+Math.round((f.life-f.t)*10),f.x-cam,f.y-24);SFX.flower();
         for(let i=0;i<10;i++)parts.push({x:f.x,y:f.y-11,vx:rnd(-60,60),vy:rnd(-90,-20),t:0,c:FLC[f.c].p});if(got>=GOAL)banner('¡20 FLORES!',3)}
       else if(f.t>=f.life){f.dead=1;lost++;SFX.wither();pop('¡SE MARCHITO!',f.x-cam,f.y-24,'#a0a0b0');if(lost>=MAXLOST){S.result='fail';S.failMsg='SE HAN MARCHITADO DEMASIADAS FLORES'}}}
     fl=fl.filter(f=>!f.dead);
