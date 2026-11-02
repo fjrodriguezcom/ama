@@ -477,7 +477,7 @@ function House(){
   const spots=furn.filter(f=>f.hide);
   const solids=walls.concat(furn);
   const a={x:180,y:OY+92,hb:{ox:2,oy:12,w:8,h:6},dir:'down',anim:0,mov:false,search:0,target:null};
-  const lilo={s:null,meowT:2.5,moveT:22,glint:0,out:null,found:0};
+  const lilo={s:null,meowT:2.5,moveT:22,glint:0,ind:null,out:null,found:0};
   let time=150,hint=null,T=0,endT=0;
   const sc=f=>({x:f.x+f.w/2,y:f.y+f.h/2});
   function roomOf(x,y){const tx=Math.floor(x/TS),ty=Math.floor((y-OY)/TS);if(ty>=1&&ty<=4)return tx<8?0:tx<15?1:2;if(ty>=8)return tx<=14?4:5;return 3}
@@ -489,7 +489,7 @@ function House(){
   S.update=dt=>{T+=dt;
     if(lilo.found>=3){endT+=dt;if(endT>2.6){S.result='win';S.bonus=Math.round(time*12)}}
     else{time-=dt;if(time<=0){time=0;S.result='fail';S.failMsg='SE ACABO EL TIEMPO... ¡LILO SIGUE ESCONDIDO!';return}}
-    furn.forEach(f=>{f.wig=Math.max(0,f.wig-dt);f.chk=Math.max(0,f.chk-dt)});lilo.glint=Math.max(0,lilo.glint-dt);
+    furn.forEach(f=>{f.wig=Math.max(0,f.wig-dt);f.chk=Math.max(0,f.chk-dt)});lilo.glint=Math.max(0,lilo.glint-dt);if(lilo.ind){lilo.ind.t-=dt;if(lilo.ind.t<=0)lilo.ind=null}
     let mx=0,my=0;
     if(a.search>0){a.search-=dt;if(a.search<=0)resolve()}
     else{mx=(keys.right?1:0)-(keys.left?1:0);my=(keys.down?1:0)-(keys.up?1:0)}
@@ -502,7 +502,7 @@ function House(){
     // lilo
     if(lilo.out){const o=lilo.out;o.t+=dt;if(o.t>1.9&&!o.gone&&lilo.found<3){o.gone=1;banner('¡LILO SE ESCAPA OTRA VEZ!',2);relocate(true,false)}if(o.t>2.6&&lilo.found<3)lilo.out=null}
     else if(lilo.found<3){lilo.meowT-=dt;if(lilo.meowT<=0){lilo.meowT=rnd(5.5,8.5);const p=sc(lilo.s),dx=p.x-(a.x+6),d=Math.hypot(dx,p.y-(a.y+12));
-        meow(clamp(dx/170,-1,1),clamp(1-d/330,.07,1)*.6);lilo.s.wig=.5;if(d<150&&Math.random()<.5)lilo.glint=.45}
+        meow(clamp(dx/170,-1,1),clamp(1-d/330,.07,1)*.6);lilo.s.wig=.5;lilo.ind={ang:Math.atan2(p.y-(a.y+12),dx)+rnd(-.45,.45),str:clamp(1-d/330,.2,1),near:d<90,t:1.3};if(d<150&&Math.random()<.5)lilo.glint=.45}
       lilo.moveT-=dt;if(lilo.moveT<=0)relocate(false,false)}};
   function resolve(){const t=a.target;t.chk=4;
     if(t===lilo.s&&!lilo.out){lilo.found++;const p=sc(t);lilo.out={x:p.x,y:p.y,t:0,dir:p.x<a.x?-1:1};addScore(300+Math.round(time)*2,p.x,p.y-20);meow(0,.7);SFX.ok();
@@ -558,7 +558,7 @@ function House(){
     if(lilo.out)L.push({x:lilo.out.x,y:lilo.out.y,r:34});if(lilo.found>=3)L.push({x:W/2,y:H/2,r:400*Math.min(1,endT)});
     for(const l of L){const gr=sg.createRadialGradient(l.x,l.y,0,l.x,l.y,l.r);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,1)');gr.addColorStop(.56,'rgba(0,0,0,.75)');gr.addColorStop(.75,'rgba(0,0,0,.75)');gr.addColorStop(.76,'rgba(0,0,0,.4)');gr.addColorStop(.9,'rgba(0,0,0,.4)');gr.addColorStop(.91,'rgba(0,0,0,.15)');gr.addColorStop(1,'rgba(0,0,0,0)');sg.fillStyle=gr;sg.fillRect(l.x-l.r,l.y-l.r,l.r*2,l.r*2)}
     ctx.drawImage(shade,0,0);
-    if(lilo.glint>0&&!lilo.out){px(p.x-3,p.y-1,2,1,'#f0e060');px(p.x+2,p.y-1,2,1,'#f0e060')}
+    if(lilo.glint>0&&!lilo.out){px(p.x-3,p.y-1,2,1,'#f0e060');px(p.x+2,p.y-1,2,1,'#f0e060')} if(lilo.ind&&!lilo.out){const I=lilo.ind,r=46+(1.3-I.t)*10;ctx.globalAlpha=Math.min(1,I.t*2)*I.str;txt('MIAU',a.x+6+Math.cos(I.ang)*r,a.y+8+Math.sin(I.ang)*r,{a:'c',s:I.near?2:1,c:'#e8e0ff',o:'#000'});ctx.globalAlpha=1}
     topBar();txt('LILO '+lilo.found+'/3',36,4,{c:'#cfc6ff'});txt('TIEMPO '+Math.ceil(time),W/2,4,{a:'c',c:time<20&&Math.sin(T*10)>0?'#ff5050':'#ffe066'});
     hintBar(hint)};
   return S}
@@ -645,7 +645,7 @@ const INFO=[
   {t:'LA CARRETERA',c:'#d9383f',mis:['LLEVA A ADRIANA AL','CONSERVATORIO A TIEMPO Y','CON LA PRACTICA AL 100%.'],
    tips:[['arrows','ARRIBA ACELERA, ABAJO FRENA'],['note','CONDUCE SUAVE: ELLA PRACTICA'],['hole','EVITA BACHES, CHARCOS, OBRAS'],['bump','BADENES: FRENA ANTES'],['clock','NO LLEGUES TARDE']]},
   {t:'LA CASA',c:'#b48ae0',mis:['LILO SE HA ESCONDIDO EN','LA CASA A OSCURAS.','ENCUENTRALO 3 VECES.'],
-   tips:[['ear','ESCUCHA DE DONDE MAULLA'],['eyes','A VECES LE BRILLAN LOS OJOS'],['act','BUSCA JUNTO A LOS MUEBLES'],['run','CAMBIA DE ESCONDITE'],['clock','TIENES 150 SEGUNDOS']]},
+   tips:[['ear','SIGUE LOS MAULLIDOS'],['eyes','A VECES LE BRILLAN LOS OJOS'],['act','BUSCA JUNTO A LOS MUEBLES'],['run','CAMBIA DE ESCONDITE'],['clock','TIENES 150 SEGUNDOS']]},
   {t:'EL CAMPO',c:'#5cc04a',mis:['RECOGE 20 FLORES ANTES','DE QUE SE MARCHITEN.','¡Y FIN DEL TURNO!'],
    tips:[['jump',(isTouch?'A':'ESPACIO')+' O ARRIBA: SALTAR'],['arrow','LAS FLECHAS TE GUIAN'],['mud','BARRO Y AGUA TE FRENAN'],['bee','ABEJAS Y ZARZAS TAMBIEN'],['flower','MAXIMO 7 MARCHITAS']]}];
 function startGame(p=0){G.lives=3;G.score=0;G.pi=p;toIntro()}
