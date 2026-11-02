@@ -95,6 +95,7 @@ const mkCar=(r,R,L)=>mkSprite(CAR_R,{...CARB,r,R,L});
 const PCAR=mkSprite(["....wwwwwwww....","..wwwwwwwwwwww..",".ywwwwwwwwwwwwy.",".wwwwwwwwwwwwwd.","kwwwwwwwwwwwwwdk","kwggggggggggggdk",".wgGgggggggggwd.",".wwggggggggggwd.","mwwRRRRRRRRRRwdm",".wwRccccccccRwd.",".wwRcCccccccRwd.",".wwRccccccccRwd.",".wwRccccccccRwd.",".wwRRRRRRRRRRwd.",".wwggggggggggwd.",".wwggggggggggwd.","kwwwwwwwwwwwwwdk","kwwwwwwwwwwwwwdk",".wwwwwwwwwwwwwd.",".twwwwwwwwwwwwt.","..wwwwwwwwwwdd..","...wwwwwwwwww..."],{w:'#f6f5f0',d:'#cfd0d8',k:'#111',g:'#2b3f66',G:'#8ab0e0',R:'#c0c0c8',c:'#2a2a32',C:'#4a4a56',y:'#fff3a0',t:'#ff4040',m:'#f6f5f0'});
 const TRAFFIC=[mkCar('#3f7fd9','#2a5aa0','#7fb0ff'),mkCar('#e8c234','#a08420','#fff08a'),mkCar('#e8e8ee','#a0a0aa','#ffffff'),mkCar('#4cb35a','#2c7236','#8ae898'),mkCar('#8a4fc2','#5c2f8a','#c08aff')];
 function circSprite(r,c1,c2,c3){const d=r*2,c=mkCanvas(d,d),g=c.getContext('2d');for(let y=0;y<d;y++)for(let x=0;x<d;x++){const dx=x-r+.5,dy=y-r+.5,q=Math.hypot(dx,dy);if(q<r){g.fillStyle=q>r-2&&dx+dy>0?c3:(dx+dy<-r*.6?c1:c2);if((x*7+y*13)%11===0)g.fillStyle=c3;g.fillRect(x,y,1,1)}}return c}
+const TREE_FAR=circSprite(5,'#7ab89a','#5a9a80','#4a8070');
 const TREE=circSprite(9,'#5fbf5a','#3f8f3e','#2a6a2c'),TREE2=circSprite(7,'#6fcf6a','#4a9f48','#2f7330');
 
 // ================= AUDIO =================
@@ -615,7 +616,7 @@ function Field(){
     for(const c of clouds){const x=((c.x-cam*.15)%(W+200)+W+200)%(W+200)-100;px(x,c.y,c.w,6,'#fff');px(x+6,c.y-4,c.w-16,4,'#fff');px(x+4,c.y+6,c.w-8,2,'#e0f0ff')}
     for(let sx=0;sx<W;sx+=2){const wx=sx+cam*.3,h=30+18*Math.sin(wx*.02)+10*Math.sin(wx*.053+1)+6*Math.sin(wx*.11);px(sx,160-h,2,h+40,'#8fb3d6');px(sx,160-h,2,2,'#b4d0ea')}
     for(let sx=0;sx<W;sx+=2){const wx=sx+cam*.55,h=16+8*Math.sin(wx*.03)+5*Math.sin(wx*.07+2);px(sx,184-h,2,h+20,'#6fbf6a');px(sx,184-h,2,1,'#9fe08a')}
-    for(let k=Math.floor(cam*.75/70)-1;k<Math.floor(cam*.75/70)+8;k++){const x=k*70-cam*.75+20;ctx.globalAlpha=.55;px(x+7,170,4,16,"#4a6a3e");blit(TREE2,x+2,158);ctx.globalAlpha=1}
+    for(let k=Math.floor(cam*.75/70)-1;k<Math.floor(cam*.75/70)+8;k++){const x=Math.round(k*70-cam*.75+20);px(x+4,184,2,6,"#4a5a4a");blit(TREE_FAR,x,174)}
     for(let x=-(C%64);x<W;x+=64)ctx.drawImage(BG.dirt,x,GY);px(0,GY,W,3,'#5cc04a');px(0,GY+3,W,2,'#3f9a3a');
     for(let k=Math.floor(C/24);k<Math.floor(C/24)+18;k++){const x=k*24-C+(k*7)%13;px(x,GY-2,1,2,'#3f9a3a');px(x+2,GY-3,1,3,'#5cc04a')}
     for(const m of mud){const x=m.x-C;px(x,GY-1,m.w,6,'#5a3a1e');px(x+3,GY-1,m.w-6,1,'#7a5230');px(x+8+Math.round(Math.sin(T*3)*2),GY,3,2,'#7a5230')}
@@ -624,7 +625,7 @@ function Field(){
     for(const t of thorns){const x=t.x-C;for(let i=0;i<t.w;i+=4){px(x+i,t.y+2,3,7,'#2f5a2a');px(x+i+1,t.y,1,2,'#c8d0a0');px(x+i+2,t.y+4,1,1,'#c8d0a0')}px(x+3,t.y+3,2,2,'#a02040');px(x+t.w-6,t.y+5,2,2,'#a02040')}
     for(const f of fl){const rem=f.life-f.t,x=f.x-C;if(rem<2.5&&Math.floor(T*8)%2)continue;if(f.t<.3){px(x-6,f.y-18,12,12,'rgba(255,255,255,.5)')}
       drawFlower(x,f.y,f.c,rem<2.5);bar(x-6,f.y-19,12,2,rem/f.life,rem<2.5?'#ff5050':'#5fd35f')}
-    if(!(a.inv>0&&Math.floor(a.inv*10)%2)){const air=!a.onG,mov=Math.abs(a.vx)>8;const dir=air||mov?a.dir:'down';drawChar(AMA.field,a.x,a.y,dir,air?1:wf(a.anim,mov))}
+    if(!(a.inv>0&&Math.floor(a.inv*10)%2)){const air=!a.onG,mov=Math.abs(a.vx)>8;const dir=air||mov?a.dir:'down';drawChar(AMA.field,Math.round(a.x)-C,Math.round(a.y),dir,air?1:wf(a.anim,mov))}
     if(a.dizzy>0)for(let i=0;i<3;i++)px(a.x+6-C+Math.cos(T*8+i*2.1)*7,a.y-3+Math.sin(T*8+i*2.1)*2,2,2,'#ffe066');
     for(const p of pond){const x=p.x-C;ctx.globalAlpha=.75;px(x,GY-4,p.w,8,'#3f8fd0');ctx.globalAlpha=1;px(x+4+Math.round(Math.sin(T*2)*3),GY-3,10,1,'#bfe6ff');px(x+30+Math.round(Math.cos(T*2)*3),GY-1,8,1,'#bfe6ff')}
     for(const be of bees){if(be.x==null)continue;const x=Math.round(be.x-C),y=Math.round(be.y),fl2=Math.floor(T*20)%2;px(x+1,y-2-fl2,3,2,'rgba(255,255,255,.85)');px(x,y,7,5,'#ffd23f');px(x+2,y,1,5,'#222');px(x+4,y,1,5,'#222');px(x+6,y+2,1,1,'#222');px(x,y+1,1,1,'#222')}
